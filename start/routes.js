@@ -34,6 +34,9 @@ Route.post('uploadManyFiles/:id', 'ProductController.uploadManyFiles');
 Route.get('updateMainFileList', 'ProductController.updateMainFileList');
 Route.get('updateSecondList', 'ProductController.updateSecondList');
 Route.post('removeFiles', 'ProductController.removeFiles');
+Route.post('removeFileOfSecondList', 'ProductController.removeFileOfSecondList');
+
+
 Route.get('product/api/getSearch', 'ProductController.getSearch');
 Route.get('product/api/getTotal', 'ProductController.getTotal');
 

@@ -225,7 +225,42 @@ class ProductController extends ScaffoldController {
       //file removed
       let geProdct = await this.resource.model.query()
       .where({ id: pro }).update({
-        principalArch: [],
+        principalArch: JSON.stringify([]),
+      }).returning('*');
+
+      console.log(geProdct);
+
+      return response.status(200).json(geProdct[0]);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async removeFileOfSecondList ({request,response}) {
+    let req = {
+      body: request.all()
+    }
+
+    const arquivoFront = req.body.file;
+    const pro = req.body.prod;
+
+    const path = arquivoFront.url;
+
+    try {
+      fs.unlinkSync(path);
+      //file removed
+
+      // pegar a lista de arquivos e deletar ele
+      const getListFiles = await this.resource.model.query().where({id: pro}).first();
+      console.log(getListFiles);
+      const list = getListFiles.listadefile;
+
+      let ListRemoved = list.filter(arquivo => arquivo.name != arquivoFront.name);
+    
+
+      let geProdct = await this.resource.model.query()
+      .where({ id: pro }).update({
+        listadefile: JSON.stringify(ListRemoved),
       }).returning('*');
 
       console.log(geProdct);

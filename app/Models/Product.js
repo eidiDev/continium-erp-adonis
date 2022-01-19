@@ -23,20 +23,24 @@ class Product extends ScaffoldModel {
   }
 
   static get with() {
-    return ['kit', 'categoryObj', 'stepXprod']
+    return ['categoryObj', 'subgrupomatrizObj']
   }
 
-  kit() {
-    return this.belongsTo('App/Models/Kit', 'product', 'id');
-  }
+  // kit() {
+  //   return this.belongsTo('App/Models/Kit', 'product', 'id');
+  // }
 
   categoryObj() {
     return this.belongsTo('App/Models/Category', 'category', 'cod');
   }
 
-  stepXprod() {
-    return this.hasMany('App/Models/Stepxprod', 'stepxprod', 'id')
+  subgrupomatrizObj(){
+    return this.belongsTo('App/Models/SubGrupoMatriz', 'subgrupomatriz', 'id');
   }
+
+  // stepXprod() {
+  //   return this.hasMany('App/Models/Stepxprod', 'stepxprod', 'id')
+  // }
 
 
 }

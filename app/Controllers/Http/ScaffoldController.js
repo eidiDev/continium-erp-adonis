@@ -205,11 +205,11 @@ class ScaffoldController {
 
     const record = await this.resource.model.find(id);
 
-    this.resource.model.with && (await record.load(this.resource.model.with));
-
     if (!record) {
       return response.status(404).json({ error: 'Registro não encontrada' });
     }
+
+    if (this.resource.model.with) await record.loadMany(this.resource.model.with);
 
     return response.json(record);
   }

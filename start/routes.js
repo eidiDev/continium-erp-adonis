@@ -19,7 +19,7 @@ const { RouteResource } = require('@adonisjs/framework/src/Route/Manager');
 const Route = use('Route');
 
 //Rota base
-Route.get('/', () => 'Bem vindo a API da Pneumax App');
+Route.get('/', () => 'Bem vindo a API da Continium App');
 
 // Route.post('/users', 'UserController.store')
 

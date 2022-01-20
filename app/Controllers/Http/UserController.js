@@ -8,15 +8,19 @@
  * Resourceful controller for interacting with users
  */
 
-const ScaffoldModel = require('./ScaffoldModel');
+const ScaffoldController = use('./ScaffoldController');
 const model = use("App/Models/User");
 
 
 
-class UserController extends ScaffoldModel {
-  constructor() {
-    super();
-    this.resource = { model }
+class UserController  {
+
+  async register({request, auth}) {
+    const data = request.only(['username', 'email', 'password', 'role']);
+
+    const user = await model.create(data)
+
+    return user
   }
 
 
@@ -42,6 +46,8 @@ class UserController extends ScaffoldModel {
    * @param {View} ctx.view
    */
   async create({ request, response, view }) {
+
+
   }
 
   /**

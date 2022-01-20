@@ -119,6 +119,8 @@ Route.post('orderProdMaquina/getMaquinasByPrioridade', 'OrderProdMaquinaControll
 //Session
 Route.post('session', 'SessionController.create')
 Route.post('/getUserSession', 'SessionController.getUserSession');
+Route.post('/register', 'UserController.register');
+
 
 
 //PrioridadeController

@@ -18,58 +18,6 @@ class StepxprodController extends ScaffoldController {
     this.resource = { model }
   }
 
-
-
-  async store({ request, response, auth }) {
-
-    const step = request.all()
-
-    const stepCreate = await model.create(step)
-
-
-    return response.json(stepCreate)
-  }
-
-
-  async index({ request, response }) {
-
-
-    let { page, limit } = request.only(['page', 'limit']);
-
-    const listResponse = await this.resource.model
-      .query()
-      .with('productObj')
-      .with('establishmentsObj')
-      .paginate(page, limit);
-
-
-    if (!page) {
-      page = 1;
-    }
-    if (!limit) {
-      limit = 50;
-    }
-
-    return response.status(200).json(listResponse);
-  }
-
-  async show({ request, response }) {
-    const { id } = request.params;
-
-    const step = await model.find(id);
-
-
-    if (!step) {
-      return response.status(404).json({ error: 'Registro não encontrado' });
-    }
-
-    if (step.product) {
-      await step.load('productObj');
-    }
-
-    return response.json(step);
-  }
-
   async searchByProductId({ request, response }) {
 
 
@@ -90,31 +38,6 @@ class StepxprodController extends ScaffoldController {
     }
   }
 
-  async store({ request, response }) {
-    let bodyToCreate = request.all();
-
-    try {
-      const createRow = await this.resource.model.create({
-        description: bodyToCreate.description,
-        descriptionStep: bodyToCreate.descriptionStep,
-        product: bodyToCreate.product,
-        status: bodyToCreate.status,
-        steps: JSON.stringify(bodyToCreate.steps)
-      });
-
-      console.log(createRow);
-
-      const rowToReturn = await this.resource.model.query()
-      .where('id', createRow.id)
-      .with('productObj')
-      .with('establishmentsObj')
-      .fetch();
-
-      return response.status(200).json(rowToReturn.rows[0])
-    } catch (error) {
-      console.log(error)
-    }
-  }
 }
 
 module.exports = StepxprodController

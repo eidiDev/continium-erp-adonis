@@ -33,60 +33,15 @@ class OrderProdController extends ScaffoldController {
     this.resource = { model }
   }
 
-  async index({ request, response }) {
-    let { page, limit } = request.only(['page', 'limit']);
-
-    if (!page) {
-      page = 1;
-    }
-    if (!limit) {
-      limit = 50;
-    }
-
-    const listResponse = await this.resource.model
-      .query()
-      .select(this.resource.model.visible)
-      .with('productObj')
-      .with('partnerObj')
-      .with('establishmentsObj')
-      .with('apontamentos')
-      .with('tempoEcustos')
-      .paginate(page, limit);
-
-    return response.json(listResponse);
-  }
-
-  async show({ request, response }) {
-    const { id } = request.params;
-
-    const record = await this.resource.model
-      .query()
-      .with('productObj')
-      .with('partnerObj')
-      .with('establishmentsObj')
-      .with('apontamentos')
-      .with('tempoEcustos')
-      .where('id', id)
-      .fetch();
-
-    this.resource.model.with && (await record.load(this.resource.model.with));
-
-    if (!record) {
-      return response.status(404).json({ error: 'Registro não encontrada' });
-    }
-
-    return response.json(record);
-  }
-
   async store({ request, response }) {
     let body = request.all();
     console.log('Start: ', new Date().toTimeString());
 
-    //  var jsonEtapas = JSON.stringify(body.etapas);
-    //  var jsonComponents = JSON.stringify(body.components);
+     var jsonEtapas = JSON.stringify(body.etapas);
+     var jsonComponents = JSON.stringify(body.components);
 
-    //  body.etapas = jsonEtapas;
-    //  body.components = jsonComponents;
+     body.etapas = jsonEtapas;
+     body.components = jsonComponents;
 
     try {
       const orderprod = await this.resource.model.create(body);
@@ -123,18 +78,21 @@ class OrderProdController extends ScaffoldController {
 
           }
 
+
           console.log('Fim do update: ', new Date().toTimeString());
 
           calculoTempoEcusto(orderprod);
 
-          let ord = await this.resource.model.query()
+          const ord = await this.resource.model.query()
             .select(this.resource.model.visible)
             .where('id', orderprod.id)
-            .with('productObj')
-            .with('maquinas').fetch();
+            .first()
+          
+          await ord.reload();
+          await ord.loadMany(this.resource.model.with)
 
           console.log('Fim CERTo: ', new Date().toTimeString());
-          return response.status(200).json(ord.rows[0]);
+          return response.status(200).json(ord);
         }
       }
     } catch (error) {
@@ -529,15 +487,13 @@ class OrderProdController extends ScaffoldController {
 
       if (updateRow === 1) {
         const op = await this.resource.model.query().where('id', id)
-          .with('productObj')
-          .with('partnerObj')
-          .with('establishmentsObj')
-          .with('apontamentos')
-          .with('tempoEcustos').fetch();
+          .first();
+        
+        await op.reload();
+        await op.loadMany(this.resource.model.with);
+        await UpdateDecalculoEcusto(op);
 
-        await UpdateDecalculoEcusto(op.rows[0]);
-
-        return response.status(200).json(op.rows[0]);
+        return response.status(200).json(op);
 
       }
     } catch (error) {

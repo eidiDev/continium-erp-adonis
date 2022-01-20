@@ -239,9 +239,19 @@ class ScaffoldController {
       return response.status(404).json({ error: 'Registro não encontrado.' });
     }
 
+
     const { accessible_attributes } = await this.getCommonProps();
 
     const resourceParams = request.only(accessible_attributes);
+
+    for (var property in resourceParams){
+      let value = resourceParams[property];
+
+      if (value instanceof Array) {
+        value = JSON.stringify(value);
+        resourceParams[property] = value;
+      }
+    }
 
     record.merge(resourceParams);
 

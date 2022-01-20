@@ -5,7 +5,7 @@ const Model = use('Model')
 const ScaffoldModel = use("ScaffoldModel");
 const Database = use('Database');
 
-class OrderProd extends Model {
+class OrderProd extends ScaffoldModel {
     static boot(){
         super.boot()
         this.addHook('afterUpdate', 'OrderProdHook.updateTimeAndCusto')
@@ -26,6 +26,10 @@ class OrderProd extends Model {
         return 'updatedAt'
     }
 
+    static get with() {
+        return ['productObj', 'partnerObj', 'establishmentsObj', 'apontamentos','tempoEcustos', 'maquinas']
+      }
+
     productObj () {
         return this.belongsTo('App/Models/Product', 'product', 'id')
     }
@@ -39,38 +43,17 @@ class OrderProd extends Model {
     }
 
     apontamentos() {
-        return this.hasMany('App/Models/NoteProd', 'noteProd', 'id')
+        return this.hasMany('App/Models/NoteProd', 'id', 'orderProd')
     }
 
     tempoEcustos() {
-        return this.hasMany('App/Models/Timeandcusto', 'timeandcusto', 'id')
+        return this.hasMany('App/Models/Timeandcusto', 'id', 'orderProd')
     }
 
     maquinas () {
         return this.hasMany('App/Models/OrderProdMaquina', 'id', 'orderProd')
     }
 
-    static async getColumns() {
-        const { rows = [] } = await Database.raw(
-            `SELECT COLUMN_NAME FROM information_schema.columns WHERE table_name = '${this.table}'`
-        );
-        this.dataTypes = rows;
-        try {
-            // this.accessible_attributes = this.visible.map((attribute) => {
-            //   const column = rows.find((row) => row.column_name === attribute);
-            //   return {
-            //     name: column.column_name,
-            //   };
-            // });
-            this.accessible_attributes = this.dataTypes.map((column) => {
-            return column.column_name;
-            });
-            console.log(this);
-            return this;
-        } catch (error) {
-            console.log(error);
-        }
-    }
 }
 
 module.exports = OrderProd

@@ -23,12 +23,12 @@ class Product extends ScaffoldModel {
   }
 
   static get with() {
-    return ['categoryObj', 'subgrupomatrizObj']
+    return ['categoryObj', 'subgrupomatrizObj', 'kit', 'stepXprod']
   }
 
-  // kit() {
-  //   return this.belongsTo('App/Models/Kit', 'product', 'id');
-  // }
+  kit() {
+    return this.hasOne('App/Models/Kit', 'id', 'product');
+  }
 
   categoryObj() {
     return this.belongsTo('App/Models/Category', 'category', 'cod');
@@ -38,9 +38,9 @@ class Product extends ScaffoldModel {
     return this.belongsTo('App/Models/SubGrupoMatriz', 'subgrupomatriz', 'id');
   }
 
-  // stepXprod() {
-  //   return this.hasMany('App/Models/Stepxprod', 'stepxprod', 'id')
-  // }
+  stepXprod() {
+    return this.hasOne('App/Models/Stepxprod', 'id', 'product')
+  }
 
 
 }

@@ -28,6 +28,10 @@ class Stepxprod extends ScaffoldModel {
     return 'updatedAt'
   }
 
+  static get with() {
+    return ['productObj', 'establishmentsObj']
+  }
+
   productObj() {
     return this.belongsTo('App/Models/Product', 'product', 'id')
   }

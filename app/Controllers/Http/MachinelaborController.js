@@ -15,6 +15,20 @@ class MachinelaborController extends ScaffoldController {
     super();
     this.resource = { model }
   }
+
+  async maoDeObraByCode({request,response}) {
+    console.log("mao de obra by code");
+    try {
+        var results = await this.resource.model.query().where({
+          type: 'maoDeObra', passwordappoitment: request.params.code
+        }).fetch();
+        
+        return response.status(200).json(results.rows)
+    }catch(err) {
+      console.log(err);
+        response.status(500).json({"error":err.message});
+    }
+  }
 }
 
 module.exports = MachinelaborController

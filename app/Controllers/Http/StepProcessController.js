@@ -39,10 +39,10 @@ class StepProcessController extends ScaffoldController {
       const operador = await MachineLabor.findBy( 'cod', req.body.generaldata.codOperador )
       const montagem = await MachineLabor.findBy( 'cod', req.body.generaldata.codMontagem )
 
-      if (maquina === undefined) { } else { await recordCreated.machineLabors().attach([maquina.id]) }
-      if (programador === undefined) { } else { await recordCreated.machineLabors().attach([programador.id]) }
-      if (operador === undefined) { } else { await recordCreated.machineLabors().attach([operador.id]) }
-      if (montagem === undefined) { } else { await recordCreated.machineLabors().attach([montagem.id]) }
+      if (!maquina) { } else { await recordCreated.machineLabors().attach([maquina.id]) }
+      if (!programador) { } else { await recordCreated.machineLabors().attach([programador.id]) }
+      if (!operador) { } else { await recordCreated.machineLabors().attach([operador.id]) }
+      if (!montagem) { } else { await recordCreated.machineLabors().attach([montagem.id]) }
 
       const updateRecord = await this.resource.model.query().where('id', recordCreated.id)
         .with('machineLabors').fetch();

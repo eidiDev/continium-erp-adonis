@@ -141,6 +141,8 @@ Route.resource('stepProcess', 'StepProcessController').apiOnly();
 
 //MachineLabor
 Route.resource('machineLabor', 'MachinelaborController').apiOnly();
+Route.get('api/machinelabor/maodeobra/:code', 'MachinelaborController.maoDeObraByCode')
+
 
 //Taxa Hora
 Route.resource('taxahora', 'TaxaHoraController').apiOnly();

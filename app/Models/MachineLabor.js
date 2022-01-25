@@ -23,6 +23,11 @@ class MachineLabor extends ScaffoldModel {
     return 'updatedAt'
   }
 
+  static get with(){
+    return ['rateTimeRelations']
+}
+
+
   rateTimeRelations() {
     return this.belongsTo('App/Models/TaxaHora', 'rateTimeRelation', 'id')
   }

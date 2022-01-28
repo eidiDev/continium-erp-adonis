@@ -20,8 +20,12 @@ class NoteProd extends ScaffoldModel {
         return 'updatedAt'
     }
 
+    static get with(){
+        return ['orderProdObj', 'etapaObj', 'colaboradorObj']
+    }
+
     orderProdObj () {
-        return this.belongsTo('App/Models/OrderProd', 'orderprod', 'id')
+        return this.belongsTo('App/Models/OrderProd', 'orderProd', 'id')
     }
 
     etapaObj () {

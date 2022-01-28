@@ -47,7 +47,7 @@ Route.group(() => {
   //NoteProd
   Route.resource('noteprod', 'NoteProdController').apiOnly();
   Route.post('createOnWeb', 'NoteProdController.createOnWeb');
-
+  Route.post('getOnlyOrderProdmaqByOrder', 'NoteProdController.getOnlyOrderProdmaqByOrder')
 
   //OrderProd
   Route.resource('orderprod', 'OrderProdController').apiOnly();
@@ -55,6 +55,7 @@ Route.group(() => {
   Route.get('api/orderProd/calculateCustOnOrder', 'OrderProdController.calculateCustOnOrder')
   Route.get('/orderprod/api/getSearch', 'OrderProdController.getSearch')
   Route.get('/orderprod/api/getTotal', 'OrderProdController.getTotal')
+ 
 
 
   //FollowUp

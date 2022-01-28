@@ -193,7 +193,7 @@ class NoteProdController extends ScaffoldController {
 
                     let timeCust = await Timeandcusto.findBy('orderProd', orderId);
 
-                    if (timeCust === undefined) {
+                    if (!timeCust) {
                         let objTocreate = {
                             orderProd: orderId,
                             tempoPrevisto: 0,
@@ -269,9 +269,10 @@ class NoteProdController extends ScaffoldController {
 
         let listaCerta = [];
         let id = req.body.idOrder;
-        let ordem = await OrderProd.query().where('id', id).populate('maquinas');
+        let ordem = await OrderProd.query().where('id', id).with('maquinas').first();
+        let objReturn = ordem.toJSON();
 
-        return response.status(200).json(ordem[0].maquinas);
+        return response.status(200).json(objReturn.maquinas);
     }
 
 

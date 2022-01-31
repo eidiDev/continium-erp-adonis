@@ -23,6 +23,7 @@ Route.get('/', () => 'Bem vindo a API da Continium App');
 
 Route.post('session', 'SessionController.create')
 // Route.post('/users', 'UserController.store')
+Route.get('getFiles', 'ProductController.getFiles');
 Route.group(() => {
   //Cliente
   Route.resource('partner', 'PartnerController').apiOnly();
@@ -33,7 +34,6 @@ Route.group(() => {
   //Product
   Route.resource('product', 'ProductController').apiOnly();
   Route.post('uploadAvatar/:id', 'ProductController.uploadAvatar');
-  Route.get('getFiles', 'ProductController.getFiles');
   Route.post('uploadManyFiles/:id', 'ProductController.uploadManyFiles');
   Route.get('updateMainFileList', 'ProductController.updateMainFileList');
   Route.get('updateSecondList', 'ProductController.updateSecondList');

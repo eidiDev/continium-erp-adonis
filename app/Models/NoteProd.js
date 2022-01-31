@@ -33,7 +33,7 @@ class NoteProd extends ScaffoldModel {
     }
 
     colaboradorObj () {
-        return this.belongsTo('App/Models/MachineLabor', 'etapa', 'id')
+        return this.belongsTo('App/Models/MachineLabor', 'colaborador', 'id')
     }
 }
 

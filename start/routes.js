@@ -27,6 +27,7 @@ Route.get('getFiles', 'ProductController.getFiles');
 Route.group(() => {
   //Cliente
   Route.resource('partner', 'PartnerController').apiOnly();
+  Route.post('uploadCliente', 'PartnerController.uploadCliente');
 
   //Users
   Route.resource('users', 'UserController').apiOnly();

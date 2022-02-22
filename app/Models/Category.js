@@ -6,7 +6,7 @@ const ScaffoldModel = use("ScaffoldModel");
 
 class Category extends ScaffoldModel {
   static get primaryKey() {
-    return 'cod'
+    return 'id'
   }
 
   static get table() {

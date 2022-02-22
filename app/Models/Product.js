@@ -31,7 +31,7 @@ class Product extends ScaffoldModel {
   }
 
   categoryObj() {
-    return this.belongsTo('App/Models/Category', 'category', 'cod');
+    return this.belongsTo('App/Models/Category', 'category', 'id');
   }
 
   subgrupomatrizObj(){

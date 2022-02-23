@@ -2,15 +2,16 @@
 
 const Database = use('Database');
 const OrderProdMaquina = use("App/Models/OrderProdMaquina");
-
+const moment = require('moment');
 
 class PrioridadeController {
 
 
   async index({ request, response }) {
-    const { idMaquina} = request.all();
+  
+    const { idMaquina, dataProdIni, dataProdFim, dataEntregaFim, dataEntregaIni } = request.all();
 
-    const lista = await getPrioridades(idMaquina);
+    const lista = await getPrioridades(idMaquina, dataProdIni, dataProdFim, dataEntregaFim, dataEntregaIni);
 
     return response.status(200).json(lista);
   }
@@ -162,12 +163,28 @@ function arraymove(arr, fromIndex, toIndex) {
   arr.splice(toIndex, 0, element);
 }
 
-async function getPrioridades(idMaquina) {
+async function getPrioridades(idMaquina, dataProdIni, dataProdFim, dataEntregaFim, dataEntregaIni) {
   try {
     var where = `opm."statusEtapa" != 'finalizada' and op.status != 'finalizada'`;
     if (idMaquina !== 'undefined' && idMaquina !== '') {
       where += ` and ( lower(opm.maquina) = lower('${idMaquina}') or lower(opm.montagem) = lower('${idMaquina}') )`;
     }
+
+    if(dataProdIni !== undefined && dataProdIni !== '') {
+      where += ` and ( op."dataProd" = '${moment(dataProdIni.replace(/['"]+/g, '')).format('DD-MM-YYYY')}')`;
+    }
+    if(dataProdFim !== undefined && dataProdFim !== ''){
+      where += `and (op."dataProd" <= '${moment(dataProdFim.replace(/['"]+/g, '')).format('DD-MM-YYYY')}')`;
+    }
+
+    if(dataEntregaIni !== undefined && dataEntregaIni !== '') {
+      where += ` and ( op."dataEntrega" >= '${moment(dataEntregaIni.replace(/['"]+/g, '')).format('DD-MM-YYYY')}')`;
+    }
+    if(dataEntregaFim !== undefined && dataEntregaFim !== ''){
+      where += `and (op."dataEntrega" <= '${moment(dataEntregaFim.replace(/['"]+/g, '')).format('DD-MM-YYYY')}')`;
+    }
+
+
     // const lista = await OrderProdMaquina.find({
     //   where: {
     //     orderProd: { '!=': null },
@@ -205,9 +222,10 @@ async function getPrioridades(idMaquina) {
       inner join product i on i.id = op.product
       inner join partner p on p.id = op.partner
       where ${where}
-      order by opm."prioridadeEtapa", opm.index asc `;
+      order by opm."prioridadeEtapa", opm.index asc 
+      limit 100`;
 
-    // console.log(SQL);
+    console.log(SQL);
     const lista = await Database.raw(SQL);
 
     return lista.rows;

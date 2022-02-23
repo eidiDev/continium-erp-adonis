@@ -1,6 +1,6 @@
 'use strict';
 
-const { RouteResource } = require('@adonisjs/framework/src/Route/Manager');
+const { RouteResource, route } = require('@adonisjs/framework/src/Route/Manager');
 
 /*
 |--------------------------------------------------------------------------
@@ -24,6 +24,8 @@ Route.get('/', () => 'Bem vindo a API da Continium App');
 Route.post('session', 'SessionController.create')
 // Route.post('/users', 'UserController.store')
 Route.get('getFiles', 'ProductController.getFiles');
+Route.get('/fetch-pdf', 'OrderProdController.getPdf')
+ 
 Route.group(() => {
   //Cliente
   Route.resource('partner', 'PartnerController').apiOnly();
@@ -56,6 +58,7 @@ Route.group(() => {
   Route.get('api/orderProd/calculateCustOnOrder', 'OrderProdController.calculateCustOnOrder')
   Route.get('/orderprod/api/getSearch', 'OrderProdController.getSearch')
   Route.get('/orderprod/api/getTotal', 'OrderProdController.getTotal')
+  Route.post('/create-pdf', 'OrderProdController.postPdf')
  
 
 

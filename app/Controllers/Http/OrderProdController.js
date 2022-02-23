@@ -22,8 +22,13 @@ const Product = use("App/Models/Product");
 const stepXprod = use("App/Models/Stepxprod")
 const Partner = use("App/Models/Partner")
 const Database = use('Database');
-const OrderProdService = use ('App/Services/OrderProdService')
+const OrderProdService = use('App/Services/OrderProdService')
 
+const pdfTemplate = require('../../../docs');
+var fs = require('fs');
+
+const puppeteer = require('puppeteer');
+const hb = require('handlebars');
 
 let listaDeKitsOnCreateOrder = [];
 
@@ -37,11 +42,11 @@ class OrderProdController extends ScaffoldController {
     let body = request.all();
     console.log('Start: ', new Date().toTimeString());
 
-     var jsonEtapas = JSON.stringify(body.etapas);
-     var jsonComponents = JSON.stringify(body.components);
+    var jsonEtapas = JSON.stringify(body.etapas);
+    var jsonComponents = JSON.stringify(body.components);
 
-     body.etapas = jsonEtapas;
-     body.components = jsonComponents;
+    body.etapas = jsonEtapas;
+    body.components = jsonComponents;
 
     try {
       const orderprod = await this.resource.model.create(body);
@@ -87,7 +92,7 @@ class OrderProdController extends ScaffoldController {
             .select(this.resource.model.visible)
             .where('id', orderprod.id)
             .first()
-          
+
           await ord.reload();
           await ord.loadMany(this.resource.model.with)
 
@@ -118,7 +123,7 @@ class OrderProdController extends ScaffoldController {
         let produtoPai = iterator.Produto.trim();
 
         let string = `${iterator.Número}-${iterator.Produto.trim()}`;
-         console.log('String: ', string);
+        console.log('String: ', string);
         let teste = await ListaPedidoFox.findBy('cod', string);
         //console.log(listaDeKitsOnCreateOrder);
 
@@ -314,7 +319,7 @@ class OrderProdController extends ScaffoldController {
     } catch (error) {
       console.log(error);
 
-      return response.status(400).json('Error ao criar Ordens');      
+      return response.status(400).json('Error ao criar Ordens');
     }
     console.log('Encerrando on create orders.');
 
@@ -478,7 +483,7 @@ class OrderProdController extends ScaffoldController {
 
       console.log(request.all());
 
-      let test =  request.all();
+      let test = request.all();
       test.components = JSON.stringify(test.components);
       test.etapas = JSON.stringify(test.etapas);
 
@@ -488,7 +493,7 @@ class OrderProdController extends ScaffoldController {
       if (updateRow === 1) {
         const op = await this.resource.model.query().where('id', id)
           .first();
-        
+
         await op.reload();
         await op.loadMany(this.resource.model.with);
         await UpdateDecalculoEcusto(op);
@@ -555,10 +560,10 @@ class OrderProdController extends ScaffoldController {
           .query().where('orderProduction', 'like', `%${str}%`)
           .with('productObj')
           .with('partnerObj')
-            .with('establishmentsObj')
-            .with('apontamentos')
-            .with('tempoEcustos')
-            .fetch()
+          .with('establishmentsObj')
+          .with('apontamentos')
+          .with('tempoEcustos')
+          .fetch()
           .fetch();
 
         // getSea = await OrderProd.find({
@@ -639,7 +644,7 @@ class OrderProdController extends ScaffoldController {
     return response.status(200).json(getSea);
   }
 
-  async getTotal ({request, response}) {
+  async getTotal({ request, response }) {
     let nativeCall = await this.resource.model.query().count();
 
     let total = nativeCall;
@@ -647,6 +652,53 @@ class OrderProdController extends ScaffoldController {
 
     return response.status(200).json(total);
 
+  }
+
+  async postPdf({ request, response }) {
+
+    let req = {
+      body: request.all()
+    }
+    let cli = await Partner.query().where({ id: req.body.partner }).first();
+    if (cli) {
+      req.body.partner = cli
+    }
+    try {
+
+
+      let data = {};
+      const template = hb.compile(pdfTemplate(req.body), { strict: true });
+      // we have compile our code with handlebars
+      const result = template(data);
+      const html = result;
+
+      const browser = await puppeteer.launch({
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      });
+      const page = await browser.newPage();
+      // We set the page content as the generated html by handlebars
+      await page.setContent(html);
+      // We use pdf function to generate the pdf in the same folder as this file.
+      await page.pdf({ path: './docs/result.pdf', format: 'A4' });
+      await browser.close();
+      response.send(Promise.resolve());
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  async getPdf({ request, response }) {
+    try {
+      response.header(
+        'Content-disposition',
+        `attachment; filename=${'result.pdf'}`
+      );
+
+      return response.attachment(`./docs/result.pdf`);
+
+    } catch (error) {
+      console.log(error);
+    }
   }
 }
 

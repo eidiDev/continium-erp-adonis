@@ -86,16 +86,16 @@ class OrderProdMaquinaController extends ScaffoldController {
         req.body.dataEntregaFim !== 'Data inválida'
       )
         where += ` and to_date(op."dataEntrega",'DD-MM-YYYY') >= to_date('${req.body.dataProdIni}','DD-MM-YYYY') `;
-      if (
-        req.body.order.prioridadeEtapaIni !== undefined &&
-        req.body.order.prioridadeEtapaIni !== ''
-      )
-        where += ` and opm."prioridadeEtapa" >= ${req.body.order.prioridadeEtapaIni} `;
-      if (
-        req.body.order.prioridadeEtapaFim !== undefined &&
-        req.body.order.prioridadeEtapaFim !== ''
-      )
-        where += ` and opm."prioridadeEtapa" <= ${req.body.order.prioridadeEtapaFim} `;
+      // if (
+      //   req.body.order.prioridadeEtapaIni !== undefined &&
+      //   req.body.order.prioridadeEtapaIni !== ''
+      // )
+      //   where += ` and opm."prioridadeEtapa" >= ${req.body.order.prioridadeEtapaIni} `;
+      // if (
+      //   req.body.order.prioridadeEtapaFim !== undefined &&
+      //   req.body.order.prioridadeEtapaFim !== ''
+      // )
+      //   where += ` and opm."prioridadeEtapa" <= ${req.body.order.prioridadeEtapaFim} `;
       if (req.body.status !== undefined && req.body.status.length > 0)
         where +=
           ` and opm."statusEtapa" in (` +

@@ -423,10 +423,10 @@ class OrderProdController extends ScaffoldController {
           builder.where('orderFox', orderFox)
         }
 
-        builder.where((build) => {
-          build.where('prioridade', '>=', prioridadeEtapaIni)
-            .where('prioridade', '<=', prioridadeEtapaFim)
-        });
+        // builder.where((build) => {
+        //   build.where('prioridade', '>=', prioridadeEtapaIni)
+        //     .where('prioridade', '<=', prioridadeEtapaFim)
+        // });
 
         // builder.where((build) => build.where('ordemPrincipal', 'like',ordemPrincipal)
         // .where('orderProduction','like',ordemPrincipal));

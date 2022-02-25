@@ -90,9 +90,9 @@ module.exports = ({
                         </th>
                         <th class="tg-7btt" style="text-align:left;">
                             <br/>
-                            Pedido de Venda: ${orderFox}<br><br>
-                            Pedido Cliente: ${pedidoCliente}<br><br>
-                            Linha pedido Fox: ${itemOrderFox} <br/><br/>
+                            Pedido de Venda: ${orderFox === null || orderFox === undefined ? '' : orderFox }<br><br>
+                            Pedido Cliente: ${pedidoCliente === null || pedidoCliente === undefined ? '' : pedidoCliente }<br><br>
+                            Linha pedido Fox: ${itemOrderFox === null || itemOrderFox === undefined ? '' : itemOrderFox } <br/><br/>
                             Cliente: ${partner.name}<br><br>
                         </th>
                     </tr>
@@ -120,7 +120,7 @@ module.exports = ({
                                 Razão Social Cliente:
                             </span>
                             <span>
-                              ${partner.lastname}
+                              ${partner.razao_social}
                             </span>
                             <br><br>
                             
@@ -228,7 +228,7 @@ module.exports = ({
                             )}</span>
                             <br><br>
                             <span style="font-weight:bold">Especificação: ${
-                              prods.obs
+                              prods.obs === null || prods.obs === undefined ? '' : prods.obs
                             } </span>
 
                             <br><br>
@@ -384,12 +384,9 @@ function retornaPartOfTableStep(tablesteps) {
     console.log(element);
     string += `
         <tr>
-            <td class="tg2-ps66">${element.etapas.substring(
-              element.etapas.indexOf(' - ') + 3,
-              element.etapas.length
-            )}</td>
+            <td class="tg2-ps66">${element.etapas.toString().replace('null', '')}</td>
             <td class="tg2-ps66" style="text-align:center">${
-              element.prioridadeEtapa
+              element.prioridadeEtapa === null || element.prioridadeEtapa === undefined ? '' : element.prioridadeEtapa
             }</td>
             <td class="tg2-ps66" style="text-align:center">${
               element.statusEtapa.charAt(0).toUpperCase() +

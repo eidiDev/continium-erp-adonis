@@ -10,7 +10,7 @@ let errors = {
 const Excel = require('exceljs');
 var fs = require('fs');
 const { parse } = require('csv-parse');
-var csv = require("csvtojson");
+var csv = require("csvtojson/v2");
 class PartnerController extends ScaffoldController {
   constructor() {
     super();
@@ -30,7 +30,9 @@ class PartnerController extends ScaffoldController {
       }
 
       if (arquive.extname === 'csv') {
-        const jsonArray = await csv().fromFile(Helpers.tmpPath(`uploads/${arquive.fileName}`));
+        const jsonArray = await csv({
+          delimiter: "auto"
+        }).fromFile(Helpers.tmpPath(`uploads/${arquive.fileName}`));
 
         console.log(jsonArray);
 

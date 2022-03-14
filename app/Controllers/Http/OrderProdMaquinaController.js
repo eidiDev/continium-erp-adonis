@@ -197,7 +197,7 @@ class OrderProdMaquinaController extends ScaffoldController {
           this.orWhereIn('montagem', ids)
         })
         .whereNotIn('statusEtapa', ['finalizada', 'planejada'])
-        .with('orderProdObj', (op) => { op.with('maquinas') }).fetch()
+        .with('orderProdObj', (op) => { op.with('maquinas').with('apontamentos').with('productObj') }).fetch()
 
       results = results.rows
       results.forEach((item) => {

@@ -238,6 +238,100 @@ class OrderProdMaquinaController extends ScaffoldController {
     }
   }
 
+  async finalizarOrderProdMaquina ({request,response}){
+    try{
+      // let orderProdMaqUpdated =  await OrderProdMaquina.updateOne({id: req.params.id}).set({"statusEtapa": "finalizada", prioridadeEtapa: 0});
+      let orderProdMaqUpdated =  await this.resource.model.query().where({id: request.params.id}).update({"statusEtapa": "finalizada", prioridadeEtapa: 0}).returning('*');
+      
+      let test = orderProdMaqUpdated[0].orderProd;
+      console.log(test);
+      let ordemDaMaq = await OrderProd.findBy('id', test);
+
+      //variavel para auxiliar quando setar o status da ordem para finalizada
+      let auxToKnowWhenFinish = [];
+      let tamanhoDalistaEtapas = ordemDaMaq.etapas.length;
+
+      //Verificar se todas as etapas da ordem estao com status finalizada
+      for (const iterator of ordemDaMaq.etapas) {
+        if(iterator.statusEtapa === "finalizada"){
+          auxToKnowWhenFinish.push(iterator)
+        }
+      }
+
+      if(tamanhoDalistaEtapas === auxToKnowWhenFinish.length){
+        await OrderProd.query().where({id: orderProdMaqUpdated[0].orderProd}).update({status: "finalizada"})
+      }
+
+
+      //setar a proxima etapa para liberada.
+      let sequenceSomada = orderProdMaqUpdated[0].sequencia + 1;
+
+      let selectSpe = await this.resource.model.query().where('orderProd', orderProdMaqUpdated[0].orderProd).fetch();
+
+      console.log(selectSpe)
+
+      for (const iterator of selectSpe.rows) {
+        if(iterator.sequencia === sequenceSomada){
+          await this.resource.model.query().where({id: iterator.id}).update({statusEtapa: "liberada"});
+
+          let order = await OrderProd.findBy('id',iterator.orderProd);
+
+          for (const iterator2 of order.etapas) {
+            if(iterator2.etapas === iterator.codEtapas && iterator2.sequencia === iterator.sequencia){
+              iterator2.statusEtapa = "liberada"
+              iterator2.prioridadeEtapa = iterator.prioridadeEtapa
+            }
+          }
+          
+          await OrderProd.query().where({id: order.id}).update({etapas: order.etapas});
+        }
+      }
+
+      //Setando as outras maquinas para -1 
+      if(orderProdMaqUpdated[0]){
+
+        let maqCod = orderProdMaqUpdated[0].maquina;
+        let reordenarasOrdens = await this.resource.model.query().where({maquina: maqCod}).where('prioridadeEtapa', '<>', 0).fetch();
+
+        for (const iterator of reordenarasOrdens.rows) {
+            iterator.prioridadeEtapa = iterator.prioridadeEtapa - 1
+            await this.resource.model.query().where({id: iterator.id}).update({prioridadeEtapa: iterator.prioridadeEtapa});
+
+            //atualizar etapas na ordens
+            let atualizarTabelaOrdem = await OrderProd.findBy('id',iterator.orderProd);
+
+            for (const iterator2 of atualizarTabelaOrdem.etapas) {
+              if(iterator2.etapas === iterator.codEtapas && iterator2.prioridadeEtapa === iterator.prioridadeEtapa){
+                iterator2.statusEtapa = iterator.statusEtapa
+                iterator2.prioridadeEtapa = iterator.prioridadeEtapa
+              }
+            }
+            await OrderProd.query().where({id: atualizarTabelaOrdem.id}).update({etapas: atualizarTabelaOrdem.etapas})
+        }
+
+        //atualizar as etapas dentro da ordem de prod
+        let atualizarTabelaOrdem = await OrderProd.findBy({id:orderProdMaqUpdated[0].orderProd});
+
+        for (const iterator of atualizarTabelaOrdem.etapas) {
+          if(iterator.etapas === orderProdMaqUpdated[0].codEtapas && iterator.sequencia === orderProdMaqUpdated[0].sequencia){
+            iterator.statusEtapa = "finalizada"
+            iterator.prioridadeEtapa = orderProdMaqUpdated[0].prioridadeEtapa
+          }
+        }
+
+        await OrderProd.query().where({id: atualizarTabelaOrdem.id}).update({etapas: JSON.stringify(atualizarTabelaOrdem.etapas) });
+
+        response.status(200).json({message: "Atualizado com sucesso"});
+      }else {
+        response.status(500).json({"error":"Erro inesperado ao atualizar"});  
+      }
+
+    }catch(err) {
+      console.log(error);
+      response.status(500).json({"error":err.message});
+    }
+  }
+
 
 }
 

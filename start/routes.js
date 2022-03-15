@@ -124,6 +124,8 @@ Route.group(() => {
   Route.get('orderProdMaquina/api/getOnlyMaquinas', 'OrderProdMaquinaController.getOnlyMaquinas');
   Route.get('orderProdMaquina/Maquina/:idMaquina', 'OrderProdMaquinaController.getOrderProdMaquinaByMaquina');
   Route.post('orderProdMaquina/getMaquinasByPrioridade', 'OrderProdMaquinaController.getMaquinasByPrioridade');
+  Route.post('orderProdMaquina/finalizar/:id', 'OrderProdMaquinaController.finalizarOrderProdMaquina');
+  
 
   //Session
   Route.post('/getUserSession', 'SessionController.getUserSession');

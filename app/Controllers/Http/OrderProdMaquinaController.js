@@ -245,14 +245,14 @@ class OrderProdMaquinaController extends ScaffoldController {
       
       let test = orderProdMaqUpdated[0].orderProd;
       console.log(test);
-      let ordemDaMaq = await OrderProd.findBy('id', test);
+      let ordemDaMaq = await this.resource.model.query().where('orderProd', orderProdMaqUpdated[0].orderProd).fetch();
 
       //variavel para auxiliar quando setar o status da ordem para finalizada
       let auxToKnowWhenFinish = [];
-      let tamanhoDalistaEtapas = ordemDaMaq.etapas.length;
+      let tamanhoDalistaEtapas = ordemDaMaq.rows.length;
 
       //Verificar se todas as etapas da ordem estao com status finalizada
-      for (const iterator of ordemDaMaq.etapas) {
+      for (const iterator of ordemDaMaq.rows) {
         if(iterator.statusEtapa === "finalizada"){
           auxToKnowWhenFinish.push(iterator)
         }
@@ -283,7 +283,7 @@ class OrderProdMaquinaController extends ScaffoldController {
             }
           }
           
-          await OrderProd.query().where({id: order.id}).update({etapas: order.etapas});
+          await OrderProd.query().where({id: order.id}).update({etapas:  JSON.stringify(order.etapas)});
         }
       }
 
@@ -306,7 +306,7 @@ class OrderProdMaquinaController extends ScaffoldController {
                 iterator2.prioridadeEtapa = iterator.prioridadeEtapa
               }
             }
-            await OrderProd.query().where({id: atualizarTabelaOrdem.id}).update({etapas: atualizarTabelaOrdem.etapas})
+            await OrderProd.query().where({id: atualizarTabelaOrdem.id}).update({etapas:  JSON.stringify(atualizarTabelaOrdem.etapas)})
         }
 
         //atualizar as etapas dentro da ordem de prod
@@ -327,7 +327,6 @@ class OrderProdMaquinaController extends ScaffoldController {
       }
 
     }catch(err) {
-      console.log(error);
       response.status(500).json({"error":err.message});
     }
   }

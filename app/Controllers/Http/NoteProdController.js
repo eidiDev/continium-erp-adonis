@@ -297,6 +297,19 @@ class NoteProdController extends ScaffoldController {
             req.body.dataFim = moment().format("DD/MM/YY HH:mm:ss");
         }
 
+        // pegando Id da maquina em MachineLabor
+
+        const OrderMaquina = await OrderProdMaquina.query().where({id: maqId }).first();
+        let getMachineLabor
+        if(OrderMaquina.maquina){
+            getMachineLabor = await MachineLabor.query().where({cod: OrderMaquina.maquina }).first();
+
+        }else{
+            getMachineLabor = await MachineLabor.query().where({cod: OrderMaquina.montagem }).first();
+        }
+
+        console.log(getMachineLabor);
+
         try {
 
             const updateReturn = await this.resource.model.query()
@@ -381,7 +394,7 @@ class NoteProdController extends ScaffoldController {
                                 // colocando custo.
                                 console.log('6');
 
-                                let machineLab = await MachineLabor.query().where('id',req.body.etapa)
+                                let machineLab = await MachineLabor.query().where('id',getMachineLabor.id)
                                 .with('rateTimeRelations').fetch();
 
                                 if (machineLab.rows[0] !== undefined) {

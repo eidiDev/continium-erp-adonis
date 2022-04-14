@@ -4,6 +4,15 @@
 const Model = use('Model');
 const ScaffoldModel = use("ScaffoldModel");
 class NoteProd extends ScaffoldModel {
+
+    static boot() {
+        super.boot();
+        
+        this.addHook('afterDelete', async (noteprod) => {
+            console.log(noteprod);
+        })
+    }
+
     static get primaryKey () {
         return 'id'
       }

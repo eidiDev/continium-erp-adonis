@@ -49,6 +49,7 @@ Route.group(() => {
 
   //NoteProd
   Route.resource('noteprod', 'NoteProdController').apiOnly();
+  Route.delete('noteprod/:id', 'NoteProdController.destroy')
   Route.post('createOnWeb', 'NoteProdController.createOnWeb');
   Route.post('getOnlyOrderProdmaqByOrder', 'NoteProdController.getOnlyOrderProdmaqByOrder')
 

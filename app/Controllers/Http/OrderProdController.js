@@ -17,6 +17,7 @@ const ListaPedidoFox = use("App/Models/Listapedidofox");
 const OrderProdMaquina = use("App/Models/OrderProdMaquina");
 const MachineLabor = use("App/Models/MachineLabor");
 const Timeandcusto = use("App/Models/Timeandcusto");
+const NoteProd = use("App/Models/NoteProd");
 const Kit = use("App/Models/Kit");
 const Product = use("App/Models/Product");
 const stepXprod = use("App/Models/Stepxprod")
@@ -696,6 +697,21 @@ class OrderProdController extends ScaffoldController {
 
       return response.attachment(`./docs/result.pdf`);
 
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async destroy({ params: { id }, response }) {
+    try {
+      const current = await this.resource.model.findOrFail(id);
+      await current.delete();
+
+      await Timeandcusto.query().where({orderProd: id}).delete();
+      await NoteProd.query().where({orderProd: id}).delete();
+      await OrderProdMaquina.query().where({orderProd: id}).delete();
+      
+      return response.status(200).json(`Ordem ${id} foi apagada com sucesso`);
     } catch (error) {
       console.log(error);
     }

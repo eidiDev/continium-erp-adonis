@@ -376,6 +376,35 @@ class NoteProdController extends ScaffoldController {
                                 // await Timeandcusto.updateOne({ id: timeCust.id }).set({
                                 //     tempoRealizado: req.body.tempoRealizado,
                                 // });
+
+                                let machineLab = await MachineLabor.query().where('id',getMachineLabor.id)
+                                .with('rateTimeRelations').fetch();
+
+                                if (machineLab.rows[0] !== undefined) {
+                                    const machineJson = machineLab.rows[0].toJSON(); 
+                                    if (machineJson.rateTimeRelations !== null && machineJson.rateTimeRelations !== undefined) {
+                                        let custoHora = machineJson.rateTimeRelations.valor / 60;
+
+                                        let toseconds = TimeFormat.toS(req.body.tempoRealizado);
+                                        console.log(toseconds);
+                                        let toMinutes = toseconds / 60;
+                                        console.log('7');
+
+                                        let aux, aux2, resultado;
+
+                                        aux = toMinutes * objOrdem.qtde;
+                                        aux2 = aux * custoHora.toFixed(3);
+                                        resultado = aux2;
+
+                                        await Timeandcusto.query().where({ id: timeCust.id })
+                                        .update({
+                                            custoRealizado: resultado,
+                                        });
+                                        // await Timeandcusto.updateOne({ id: timeCust.id }).set({
+                                        //     custoRealizado: resultado,
+                                        // });
+                                    }
+                                }
                             } else {
                                 console.log('5');
                                 let tempo = timeCust.tempoRealizado;
@@ -434,6 +463,109 @@ class NoteProdController extends ScaffoldController {
 
         } catch (error) {
             console.log(error);
+        }
+    }
+
+    async destroy({ params: { id }, response }) {
+        try {
+          const current = await this.resource.model.findOrFail(id);
+          if(current){
+            // pegar o id da orderprd vinculado a esse apontamento
+            const getOrderprodID = current.orderProd;
+            const objOrdem = await OrderProd.findBy( 'id', current.orderProd );
+            console.log(getOrderprodID);
+
+            // pegar a tabela timeandcusto
+            const getTimecusto = await Timeandcusto.query().where({orderProd:getOrderprodID }).first();
+            console.log(getTimecusto);
+
+            
+            // Momento que o apontamento é apagado
+            await this.resource.model.query().where({id}).delete();
+            
+            //Atualizar tempo quando o apontamento for apagado
+
+            const getApontamentos = await this.resource.model.query().where({orderProd: getOrderprodID }).fetch();
+            const listApontamentos = getApontamentos.rows;
+
+            let inicioTempo = '00:00:00';
+            let somasTempo;
+            let index = 0;
+            
+            if(listApontamentos.length === 0){
+                somasTempo = inicioTempo
+            }else{
+                for (const iterator of listApontamentos) {
+                    if(index === 0){
+                      somasTempo = addTimes(inicioTempo , iterator.tempoRealizado)
+                    }else{
+                      somasTempo = addTimes(somasTempo , iterator.tempoRealizado)
+                    }
+                    index = index + 1
+                }
+            }
+            
+
+            await Timeandcusto.query().where({ id: getTimecusto.id })
+            .update({
+                tempoRealizado: somasTempo,
+            });
+            
+            //Atualizar custo quando o apontamento for apagado
+
+            const OrderMaquina = await OrderProdMaquina.query().where({id: current.etapa }).first();
+            let getMachineLabor
+            if(OrderMaquina.maquina){
+                getMachineLabor = await MachineLabor.query().where({cod: OrderMaquina.maquina }).first();
+
+            }else{
+                getMachineLabor = await MachineLabor.query().where({cod: OrderMaquina.montagem }).first();
+            }
+
+            let machineLab = await MachineLabor.query().where('id',getMachineLabor.id)
+            .with('rateTimeRelations').fetch();
+
+            if (machineLab.rows[0] !== undefined) {
+                const machineJson = machineLab.rows[0].toJSON(); 
+                if (machineJson.rateTimeRelations !== null && machineJson.rateTimeRelations !== undefined) {
+                    let custoHora = machineJson.rateTimeRelations.valor / 60;
+
+                    let toseconds = TimeFormat.toS(somasTempo);
+                    console.log(toseconds);
+                    let toMinutes = toseconds / 60;
+                    console.log('7');
+
+                    let aux, aux2, resultado;
+
+                    aux = toMinutes * objOrdem.qtde;
+                    aux2 = aux * custoHora.toFixed(3);
+                    resultado = aux2;
+
+                    let resultCustoAtual
+                    if(somasTempo === '00:00:00'){
+                        resultCustoAtual = 0
+                    }else{
+                        resultCustoAtual = getTimecusto.custoRealizado
+                    }
+                    let resultCustoAposDelete = (resultCustoAtual - resultado)
+
+                    if(parseFloat(resultCustoAposDelete) <= 0){
+                        resultCustoAposDelete = 0
+                    }
+
+                    await Timeandcusto.query().where({ id: getTimecusto.id })
+                    .update({
+                        custoRealizado: resultCustoAposDelete,
+                    });
+                }
+            }
+          }else{
+            return response.status(400).json({message: 'Apontamento não encontrado na base de dados, tente novamente'})
+          }
+          
+          return response.status(200).json({message: `Apontamento ${id} foi deletado ` });
+        } catch (error) {
+          console.log(error);
         }
     }
 }

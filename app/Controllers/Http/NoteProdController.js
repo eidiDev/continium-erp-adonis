@@ -30,6 +30,17 @@ class NoteProdController extends ScaffoldController {
         const maqId = req.body.orderProdMaqId;
 
         req.body.dataInicio = moment().format("DD/MM/YY HH:mm:ss");
+
+        let ordermaq = await OrderProdMaquina.findBy('id', maqId);
+        let machine;
+        if (ordermaq.maquina === "") {
+            machine = await MachineLabor.findBy('cod', ordermaq.montagem);
+            req.body.etapa = machine.id
+        } else {
+            machine = await MachineLabor.findBy('cod', ordermaq.maquina);
+            req.body.etapa = machine.id
+        }
+
         delete req.body.orderProdMaqId;
 
         try {
@@ -229,11 +240,13 @@ class NoteProdController extends ScaffoldController {
                     // }).populate('rateTimeRelation');
                     if (machineLab.rows[0] !== undefined) {
                         const machineJson = machineLab.rows[0].toJSON(); 
+
+                        let custoAtual = timeCust.custoRealizado;
                         
                         if (machineJson.rateTimeRelations !== null) {
                             let custoHora = machineJson.rateTimeRelations.valor / 60;
     
-                            let toseconds = TimeFormat.toS(add);
+                            let toseconds = TimeFormat.toS(req.body.tempoRealizado);
                             console.log(toseconds);
                             let toMinutes = toseconds / 60;
     
@@ -242,9 +255,11 @@ class NoteProdController extends ScaffoldController {
                             aux = toMinutes * objOrdem.qtde;
                             aux2 = aux * custoHora.toFixed(3);
                             resultado = aux2;
+
+                            let finalResult =  custoAtual + resultado
     
                             await Timeandcusto.query().where({ id: timeCust.id }).update({
-                                custoRealizado: resultado,
+                                custoRealizado: finalResult,
                             });
                             // await Timeandcusto.updateOne({ id: timeCust.id }).set({
                             //     custoRealizado: resultado,
@@ -382,6 +397,9 @@ class NoteProdController extends ScaffoldController {
 
                                 if (machineLab.rows[0] !== undefined) {
                                     const machineJson = machineLab.rows[0].toJSON(); 
+
+                                    let custoAtual = timeCust.custoRealizado;
+                                    
                                     if (machineJson.rateTimeRelations !== null && machineJson.rateTimeRelations !== undefined) {
                                         let custoHora = machineJson.rateTimeRelations.valor / 60;
 
@@ -396,9 +414,11 @@ class NoteProdController extends ScaffoldController {
                                         aux2 = aux * custoHora.toFixed(3);
                                         resultado = aux2;
 
+                                        let finalResult =  custoAtual + resultado
+
                                         await Timeandcusto.query().where({ id: timeCust.id })
                                         .update({
-                                            custoRealizado: resultado,
+                                            custoRealizado: finalResult,
                                         });
                                         // await Timeandcusto.updateOne({ id: timeCust.id }).set({
                                         //     custoRealizado: resultado,
@@ -409,6 +429,7 @@ class NoteProdController extends ScaffoldController {
                                 console.log('5');
                                 let tempo = timeCust.tempoRealizado;
                                 let tempo2 = req.body.tempoRealizado;
+                                let custoAtual = timeCust.custoRealizado
 
                                 //soma dos tempo antigo na tabela com o novo tempo de apontamento
                                 let add = addTimes(tempo, tempo2);
@@ -431,7 +452,7 @@ class NoteProdController extends ScaffoldController {
                                     if (machineJson.rateTimeRelations !== null && machineJson.rateTimeRelations !== undefined) {
                                         let custoHora = machineJson.rateTimeRelations.valor / 60;
 
-                                        let toseconds = TimeFormat.toS(add);
+                                        let toseconds = TimeFormat.toS(tempo2);
                                         console.log(toseconds);
                                         let toMinutes = toseconds / 60;
                                         console.log('7');
@@ -442,9 +463,13 @@ class NoteProdController extends ScaffoldController {
                                         aux2 = aux * custoHora.toFixed(3);
                                         resultado = aux2;
 
+                                        // Somar o valor antigo com o novo valor
+
+                                        let finalResult =  custoAtual + resultado
+
                                         await Timeandcusto.query().where({ id: timeCust.id })
                                         .update({
-                                            custoRealizado: resultado,
+                                            custoRealizado: finalResult,
                                         });
                                         // await Timeandcusto.updateOne({ id: timeCust.id }).set({
                                         //     custoRealizado: resultado,
@@ -513,16 +538,7 @@ class NoteProdController extends ScaffoldController {
             
             //Atualizar custo quando o apontamento for apagado
 
-            const OrderMaquina = await OrderProdMaquina.query().where({id: current.etapa }).first();
-            let getMachineLabor
-            if(OrderMaquina.maquina){
-                getMachineLabor = await MachineLabor.query().where({cod: OrderMaquina.maquina }).first();
-
-            }else{
-                getMachineLabor = await MachineLabor.query().where({cod: OrderMaquina.montagem }).first();
-            }
-
-            let machineLab = await MachineLabor.query().where('id',getMachineLabor.id)
+            let machineLab = await MachineLabor.query().where('id',current.etapa)
             .with('rateTimeRelations').fetch();
 
             if (machineLab.rows[0] !== undefined) {
@@ -530,7 +546,7 @@ class NoteProdController extends ScaffoldController {
                 if (machineJson.rateTimeRelations !== null && machineJson.rateTimeRelations !== undefined) {
                     let custoHora = machineJson.rateTimeRelations.valor / 60;
 
-                    let toseconds = TimeFormat.toS(somasTempo);
+                    let toseconds = TimeFormat.toS(current.tempoRealizado);
                     console.log(toseconds);
                     let toMinutes = toseconds / 60;
                     console.log('7');

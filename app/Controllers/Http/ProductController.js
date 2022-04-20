@@ -92,26 +92,35 @@ class ProductController extends ScaffoldController {
   }
 
   async uploadManyFiles({ request, response }) {
+    let newName
+    let fileObject
+    let url_link
 
     try {
-      const arquive = request.file('arquivos', {
-        types: ['image', 'pdf'],
-        size: '100mb'
+      request.multipart.file('arquivos', {}, async (file) => {
+        const ContentType = file.headers['content-type']
+        const ACL = 'public-read'
+
+        
+        newName = await getName(file);
+
+        fileObject = file;
+
+        await Drive.disk('s3')
+          .put(`${process.env.STORAGE_MAIN_NAME}/produtos/${newName}`, file.stream, {
+            ContentType,
+            ACL
+          })
+          .then(function (data) {
+            url_link = data;
+          })
+          .catch(function (err, res) {
+            console.log(err);
+        });
+
       });
 
-      if (arquive._files != undefined) {
-        await arquive.moveAll(Helpers.tmpPath('uploads'))
-
-        if (!arquive.movedAll()) {
-          return arquive.errors()
-        }
-      } else {
-        await arquive.move(Helpers.tmpPath('uploads'), { overwrite: true });
-
-        if (!arquive.moved()) {
-          return arquive.error()
-        }
-      }
+      await request.multipart.process();
 
       let identy = request.params.id
 
@@ -127,30 +136,28 @@ class ProductController extends ScaffoldController {
         }
       }
 
-      if (arquive._files === undefined) {
+      if (lista.length === 0) {
         var last = lista[lista.length - 1];
 
         lista.push({
           uid: last === undefined ? 1 : last.uid + 1,
-          name: arquive.fileName,
-          status: arquive.status,
-          url: Helpers.tmpPath(`uploads/${arquive.fileName}`),
-          type: arquive.type,
+          name: newName,
+          status: fileObject.status,
+          url: url_link,
+          type: fileObject.type,
         });
+
       } else {
-        for (let index = 0; index < _files.length; index++) {
-          const element = _files[index];
+        var last = lista[lista.length - 1];
+        
+        lista.push({
+          uid: last === undefined ? 1 : last.uid + 1,
+          name: newName,
+          status: fileObject.status,
+          url: url_link,
+          type: fileObject.type,
+        });
 
-          var last = lista[lista.length - 1];
-
-          lista.push({
-            uid: last === undefined ? 1 : last.uid + 1,
-            name: element.fileName,
-            status: element.status,
-            url: Helpers.tmpPath(`uploads/${element.fileName}`),
-            type: element.type,
-          });
-        }
       }
 
       const updateRecord = await this.resource.model.query().where('id', request.params.id)
@@ -269,8 +276,20 @@ class ProductController extends ScaffoldController {
 
     const path = arquivoFront.url;
 
+    let flagIfDeleted;
+    
     try {
-      fs.unlinkSync(path);
+
+      await Drive.disk('s3')
+      .delete(`${process.env.STORAGE_MAIN_NAME}/produtos/${arquivoFront.name}`)
+      .then(function (data) {
+        flagIfDeleted = data;
+        // objToSave.link = data;
+      })
+      .catch(function (err) {
+        flagIfDeleted = false;
+        console.log(err);
+      });
       //file removed
 
       // pegar a lista de arquivos e deletar ele

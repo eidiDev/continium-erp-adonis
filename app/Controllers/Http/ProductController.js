@@ -18,34 +18,53 @@ class ProductController extends ScaffoldController {
 
   async uploadAvatar({ request, response }) {
     const idProduto = request.params.id;
+    let newName = '';
+    let fileObject
+    let url_link
 
     try {
 
-      const arquive = request.file('avatar', {
-        types: ['image', 'pdf'],
-        size: '100mb'
-      });
+      request.multipart.file('avatar', {}, async (file) => {
+        const ContentType = file.headers['content-type']
+        const ACL = 'public-read'
 
-      await arquive.move(Helpers.tmpPath('uploads'), { overwrite: true });
+        
+        newName = await getName(file);
 
-      if (!arquive.moved()) {
-        return arquive.error();
-      }
+        fileObject = file;
+
+        await Drive.disk('s3')
+          .put(`${process.env.STORAGE_MAIN_NAME}/produtos/${newName}`, file.stream, {
+            ContentType,
+            ACL
+          })
+          .then(function (data) {
+            url_link = data;
+          })
+          .catch(function (err, res) {
+            console.log(err);
+          });
+
+      })
+    
+      await request.multipart.process()
+
 
       const updateProdct = await model.query()
-        .where('id', idProduto).update({
-          principalArch: {
-            uid: idProduto,
-            name: arquive.fileName,
-            status: arquive.status,
-            url: Helpers.tmpPath(`uploads/${arquive.fileName}`),
-            type: arquive.type,
-          }
-        });
+      .where('id', idProduto).update({
+        principalArch: {
+          uid: idProduto,
+          name: newName,
+          status: fileObject.status,
+          url: url_link,
+          type: fileObject.type,
+        }
+      });
 
       if (updateProdct === 1) {
         return response.ok()
       }
+        
 
       // await Drive.put(`uploads/${arquive.clientName}`, arquive.stream)
       //   .then(async function (data) {
@@ -154,19 +173,8 @@ class ProductController extends ScaffoldController {
       // // var fileAdapter = SkipperDisk(/* optional opts */);
 
       if (Object.keys(obj).length !== undefined) {
-        let file = require('path').resolve(obj.url);
 
-        const isExist = await Drive.exists(Helpers.tmpPath(`uploads/${obj.name}`));
-
-        if (isExist) {
-          response.header(
-            'Content-disposition',
-            `attachment; filename=${obj.name}`
-          );
-
-          return response.attachment(Helpers.tmpPath(`uploads/${obj.name}`));
-        }
-        return response.json({ error: 'File not Found' });;
+        return response.status(200).json({url_link: obj.url});
 
       } else {
         return response.json({ error: 'File not Found' });
@@ -218,19 +226,34 @@ class ProductController extends ScaffoldController {
     const arquivoFront = req.body.file;
     const pro = req.body.prod;
 
-    const path = arquivoFront.url;
+    let flagIfDeleted
+
 
     try {
-      fs.unlinkSync(path);
+      await Drive.disk('s3')
+      .delete(`${process.env.STORAGE_MAIN_NAME}/produtos/${arquivoFront.name}`)
+      .then(function (data) {
+        flagIfDeleted = data;
+        // objToSave.link = data;
+      })
+      .catch(function (err) {
+        flagIfDeleted = false;
+        console.log(err);
+      });
       //file removed
-      let geProdct = await this.resource.model.query()
-      .where({ id: pro }).update({
-        principalArch: JSON.stringify([]),
-      }).returning('*');
 
-      console.log(geProdct);
-
-      return response.status(200).json(geProdct[0]);
+      if(flagIfDeleted){
+        let geProdct = await this.resource.model.query()
+        .where({ id: pro }).update({
+          principalArch: JSON.stringify([]),
+        }).returning('*');
+  
+        console.log(geProdct);
+  
+        return response.status(200).json(geProdct[0]);
+      }else{
+        return response.status(400)
+      }
     } catch (err) {
       console.error(err);
     }

@@ -31,6 +31,7 @@
     "@adonisjs/shield": "^1.0.8",
     "@adonisjs/validator": "^5.0.6",
     "adonis-lucid-filter": "^1.0.5",
+    "aws-sdk": "^2.1117.0",
     "axios": "^0.21.1",
     "bee-queue": "^1.2.3",
     "cross-blob": "^2.0.0",

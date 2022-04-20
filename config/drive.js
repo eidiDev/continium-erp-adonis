@@ -13,7 +13,7 @@ module.exports = {
   | defining a disk name
   |
   */
-  default: 'local',
+  default: 's3',
 
   disks: {
     /*
@@ -39,10 +39,11 @@ module.exports = {
     */
     s3: {
       driver: 's3',
-      key: Env.get('S3_KEY'),
-      secret: Env.get('S3_SECRET'),
-      bucket: Env.get('S3_BUCKET'),
-      region: Env.get('S3_REGION')
+      key: Env.get('DO_SPACES_KEY'),
+      secret: Env.get('DO_SPACES_SECRET'),
+      bucket: Env.get('DO_SPACES_NAME'),
+      endpoint: Env.get('DO_SPACES_ENDPOINT'),
+      visibility: 'public',
     }
   }
 }

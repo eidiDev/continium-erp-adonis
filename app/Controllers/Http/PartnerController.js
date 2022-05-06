@@ -6,6 +6,7 @@ const model = use('App/Models/Partner');
 
 let errors = {
   errorType: "O arquivo tem que ser um CSV",
+  errorDelimiter: "O sistema não identificou o delimitador do CSV, tente novamente com outro arquivo"
 }
 const Excel = require('exceljs');
 var fs = require('fs');
@@ -36,9 +37,29 @@ class PartnerController extends ScaffoldController {
 
         console.log(jsonArray);
 
-        // Criando clientes a partir do parse do csv
-        await this.resource.model.createMany(jsonArray)
+        if(jsonArray[0].name){
+          for (const iterator of jsonArray) {
+            const findPartner = await this.resource.model.query().where({
+              cnpj: iterator.cnpj
+            }).first()
 
+            if(findPartner){
+              console.log(findPartner);
+              const removeIndex = jsonArray.findIndex( item => item.cnpj === findPartner.cnpj );
+              // remove object
+              jsonArray.splice( removeIndex, 1 );
+            }
+            console.log(iterator);
+          }
+  
+          // Criando clientes a partir do parse do csv
+          await this.resource.model.createMany(jsonArray)
+  
+        }else{
+          throw errors.errorDelimiter
+        }
+
+        
       } else {
         throw errors.errorType
       }
